@@ -1,32 +1,38 @@
 package org.usfirst.frc.team1601.robot;
 
-import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
+
+import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.SpeedControllerGroup;
 
 public class ClawSystem implements Runnable {
 
 	Joystick leftJoystick;
-	SpeedControllerGroup clawSystemMotors;
+	WPI_VictorSPX leftClawMotor, rightClawMotor;
 	
-	private boolean killThread = false;
 
-	ClawSystem(Joystick leftJoystick, SpeedControllerGroup clawSystemMotors) {
+	ClawSystem(Joystick leftJoystick, WPI_VictorSPX leftClawMotor, WPI_VictorSPX rightClawMotor) {
 		this.leftJoystick = leftJoystick;
-		this.clawSystemMotors = clawSystemMotors;
+		this.leftClawMotor = leftClawMotor;
+		this.rightClawMotor = rightClawMotor;
 	}
 
+	public static double motorStallSpeed = 0.03;
+	
 	public void run() {
-		while (!killThread) {
-			if (leftJoystick.getPOV() == 0) {
-				clawSystemMotors.set(OI.maxClawSpeed);
-			} else if (leftJoystick.getPOV() == 180) {
-				clawSystemMotors.set(-OI.maxClawSpeed);
-			} else {
-				clawSystemMotors.set(0);
+		while (true) {
+			if(leftJoystick.getRawButton(5)) {
+				leftClawMotor.set(-.50);
+				rightClawMotor.set(.50);
 			}
-			
+			else if(leftJoystick.getRawButton(3)) {
+				leftClawMotor.set(.50);
+				rightClawMotor.set(-.50);
+			}
+			else {
+				leftClawMotor.set(-motorStallSpeed);
+				rightClawMotor.set(motorStallSpeed);
+			}
 			//Sleep for threadSleepTime miliSecounds
 			try {
 				Thread.sleep(OI.threadSleepTime);

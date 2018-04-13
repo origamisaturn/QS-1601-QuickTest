@@ -19,16 +19,18 @@ public class RobotMap {
 	public static int leftFrontMotor = 1,
 						leftRearMotor = 2,
 						rightFrontMotor = 3,
-						rightRearMotor = 4,
+						rightRearMotor = 6,
 						middleWheelMotor = 5;
 	//Other Motors
 	public static int elevatorMotor = 6,
-						leftClawMotor = 7,
-						rightClawMotor = 8;
+						leftClawMotor = 30,
+						rightClawMotor = 32;
 	//Joy Sticks
 	public static int leftJoystick = 0,
 						rightJoystick = 1;
 	//Limit Switches
 	public static int topLimitSwitch = 1,
 						bottomLimitSwitch = 2;
+	
+	//public static double autoRunTime = 3;
 }

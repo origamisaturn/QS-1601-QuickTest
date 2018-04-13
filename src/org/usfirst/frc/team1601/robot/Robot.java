@@ -8,8 +8,9 @@
 package org.usfirst.frc.team1601.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.SpeedController;
 import edu.wpi.first.wpilibj.SpeedControllerGroup;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -25,37 +26,40 @@ public class Robot extends IterativeRobot {
 	private static final String kCustomAuto = "My Auto";
 	private String m_autoSelected;
 	private SendableChooser<String> m_chooser = new SendableChooser<>();
+
+	OI oi;
 	
-	ClawSystem myClawSystem;
+	SpeedControllerGroup leftSideDriveTrain, rightSideDriveTrain, clawSystemMotors;
 	MiddleWheelDrive myMiddleWheel;
 	DriveTrain mydriveTrain;
+	ClawSystem myClawSystem;
 	ElevatorSystem myElevatorSystem;
-	OI oi;
-
-
-
+	DifferentialDrive differentialDrive;
+	//ElevatorSystem myElevatorSystem;
+	Timer autoTime;
+	
 	/**
 	 * This function is run when the robot is first started up and should be
 	 * used for any initialization code.
 	 */
 	@Override
 	public void robotInit() {
+		oi = new OI();
+		
 		m_chooser.addDefault("Default Auto", kDefaultAuto);
 		m_chooser.addObject("My Auto", kCustomAuto);
 		SmartDashboard.putData("Auto choices", m_chooser);
-		SpeedControllerGroup leftSideDriveTrain = new SpeedControllerGroup(oi.leftFrontMotor, oi.leftRearMotor),
-				rightSideDriveTrain = new SpeedControllerGroup(oi.rightFrontMotor, oi.rightRearMotor);
+		SmartDashboard.putNumber("Joystick Twist", oi.rightJoystick.getTwist());
 		
-		SpeedControllerGroup clawSystemMotors = new SpeedControllerGroup(oi.leftClawMotor, oi.rightClawMotor);
-		
-		myClawSystem = new ClawSystem(oi.leftJoystick, clawSystemMotors);
-		myMiddleWheel = new MiddleWheelDrive(oi.leftJoystick, oi.rightJoystick, oi.middleWheelMotor);
-		mydriveTrain = new DriveTrain(oi.leftJoystick, oi.rightJoystick, leftSideDriveTrain, rightSideDriveTrain, oi.middleWheelMotor, oi.differentialDrive);
-		myElevatorSystem = new ElevatorSystem(oi.rightJoystick, oi.elevatorMotor, oi.topLimitSwitch, oi.bottomLimitSwitch);
+		leftSideDriveTrain = new SpeedControllerGroup(oi.leftFrontMotor, oi.leftRearMotor);
+		rightSideDriveTrain = new SpeedControllerGroup(oi.rightFrontMotor, oi.rightRearMotor);
 
-		SmartDashboard.putNumber("Left Wheel Turn Rate", oi.leftFrontMotor.getSelectedSensorVelocity(0));
-		SmartDashboard.putNumber("Right Wheel Turn Rate", oi.rightFrontMotor.getSelectedSensorVelocity(0));
-		SmartDashboard.putNumber("Raw Slider Value", oi.leftJoystick.getRawAxis(3));
+		
+		myClawSystem = new ClawSystem(oi.leftJoystick, oi.leftClawMotor, oi.rightClawMotor);
+		myMiddleWheel = new MiddleWheelDrive(oi.leftJoystick, oi.rightJoystick, oi.middleWheelMotor);
+
+		mydriveTrain = new DriveTrain(oi.leftJoystick, oi.rightJoystick, leftSideDriveTrain, rightSideDriveTrain, oi.middleWheelMotor, differentialDrive);
+		myElevatorSystem = new ElevatorSystem(oi.rightJoystick, oi.elevatorMotor);
 	}
 
 	/**
@@ -75,39 +79,43 @@ public class Robot extends IterativeRobot {
 		// autoSelected = SmartDashboard.getString("Auto Selector",
 		// defaultAuto);
 		System.out.println("Auto selected: " + m_autoSelected);
+		autoTime = new Timer();
+		autoTime.reset();
+		autoTime.start();
 	}
-
-	/**
-	 * This function is called periodically during autonomous.
-	 */
-	@Override
-	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
+	public void autonomousPeriodic()
+	{
+		double autoRunTime = 4.25;
+		if(autoTime.get()<autoRunTime)
+		{
+			differentialDrive.tankDrive(-OI.leftMotorsMaxSpeed,-OI.rightMotorsMaxSpeed);
+		}
+		else
+		{
+			differentialDrive.tankDrive(0,0);
 		}
 	}
-
 	/**
 	 * This function is called periodically during operator control.
 	 */
 	@Override
+	public void teleopInit() {
+		
+		Thread myClawSystemThread  = new Thread(myClawSystem);
+		Thread myDriveTrainThread = new Thread(mydriveTrain);
+		Thread myMiddleWheelThread = new Thread(myMiddleWheel);
+//		Thread myElevatorSystemThread = new Thread(myElevatorSystem);
+		myDriveTrainThread.start();
+		myMiddleWheelThread.start();
+		myClawSystemThread.start();
+//		myElevatorSystemThread.start();
+
+	}
+	@Override
 	public void teleopPeriodic() {
 
-/*		Thread clawThread = new Thread(myClawSystem);
-		clawThread.start();*/
-		Thread driveTrainThread = new Thread(mydriveTrain);
-		driveTrainThread.start();
-		Thread myMiddleWheelThread = new Thread(myMiddleWheel);
-		myMiddleWheelThread.start();
-/*		Thread myElevatorSystemThread = new Thread(myElevatorSystem);
-		myElevatorSystemThread.start();
-*/	}
+		
+	}
 
 	/**
 	 * This function is called periodically during test mode.

@@ -14,9 +14,7 @@ public class DriveTrain implements Runnable{
 	WPI_TalonSRX middleWheelMotor;
 	SpeedControllerGroup leftSideDriveTrain, rightSideDriveTrain;
 	DifferentialDrive differentialDrive;
-		
-	private boolean killThread = false;
-	
+			
 	DriveTrain(Joystick leftJoystick, Joystick rightJoystick, SpeedControllerGroup leftSideDriveTrain, SpeedControllerGroup rightSideDriveTrain, WPI_TalonSRX middleWheelMotor, DifferentialDrive differentialDrive) {
 		this.leftJoystick = leftJoystick;
 		this.rightJoystick = rightJoystick;
@@ -25,28 +23,18 @@ public class DriveTrain implements Runnable{
 		this.middleWheelMotor = middleWheelMotor;
 		this.differentialDrive = differentialDrive;
 		
-
 	}
 	
 	public void run() {
-		while(!killThread) {
+		while(true) {
 			//LeftSide and RightSide tankDrive
 			if(Math.abs(leftJoystick.getRawAxis(1) - rightJoystick.getRawAxis(1)) <= .05) {
-				differentialDrive.tankDrive(leftJoystick.getRawAxis(1) * OI.leftMotorAdjustConstant * OI.driveTrainMotorsMaxSpeed , rightJoystick.getRawAxis(1) * OI.rightMotorAdjustConstant * OI.driveTrainMotorsMaxSpeed, true);
+				differentialDrive.tankDrive(-leftJoystick.getRawAxis(1) * OI.leftMotorAdjustConstant * OI.leftMotorsMaxSpeed , -rightJoystick.getRawAxis(1) * OI.rightMotorAdjustConstant * OI.rightMotorsMaxSpeed, true);
 			}
 			else {
-				differentialDrive.tankDrive(leftJoystick.getRawAxis(1) * OI.driveTrainMotorsMaxSpeed, rightJoystick.getRawAxis(1) * OI.driveTrainMotorsMaxSpeed, true);
+				differentialDrive.tankDrive(-leftJoystick.getRawAxis(1) * OI.leftMotorsMaxSpeed, -rightJoystick.getRawAxis(1) * OI.rightMotorsMaxSpeed, true);
 			}
-			//MiddleWheel Drive
-			if(leftJoystick.getTrigger()) {
-				middleWheelMotor.set(OI.driveTrainMiddleWheelMotorSpeed);
-			}
-			else if(rightJoystick.getTrigger()) {
-				middleWheelMotor.set(-OI.driveTrainMiddleWheelMotorSpeed);
-			}
-			else {
-				middleWheelMotor.set(0);
-			}
+
 			//Sleep for threadSleepTime miliSecounds
 			try {
 				Thread.sleep(OI.threadSleepTime);
